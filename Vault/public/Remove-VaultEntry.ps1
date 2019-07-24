@@ -40,7 +40,7 @@ The underlying class, [Windows.Security.Credentials.PasswordVault], is oddly cas
 #>
 function Remove-VaultEntry {
 
-    [CmdletBinding(DefaultParameterSetName = 'FindAllByResource', ConfirmImpact = "high")]
+    [CmdletBinding(DefaultParameterSetName = 'FindAllByResource', ConfirmImpact = "high", SupportsShouldProcess)]
 
     param (
 
@@ -73,31 +73,34 @@ function Remove-VaultEntry {
 
     process {
 
-        try {
+        if ($PSCmdlet.ShouldProcess("Removing credentials--they will not be recoverable")) {
 
-            $value = if ($Resource) { Write-Output $Resource } else { Write-Output $UserName }
+            try {
 
-            $windowsSecurityCredential = GetPasswordVaultEntry -ErrorAction Stop -Mode $PsCmdlet.ParameterSetName -Value $value
+                $value = if ($Resource) { Write-Output $Resource } else { Write-Output $UserName }
 
-            $int_ShouldContinueCountValue = ($windowsSecurityCredential | Measure-Object).Count
+                $windowsSecurityCredential = GetPasswordVaultEntry -ErrorAction Stop -Mode $PsCmdlet.ParameterSetName -Value $value
 
-            $shouldContinueCaption = "If you continue, $($int_ShouldContinueCountValue) credential(s) will be deleted. There is no way to recover them."
-            $shouldContinueMessage = "Please make sure you have taken the necessary precautions. Continue?"
+                $int_ShouldContinueCountValue = ($windowsSecurityCredential | Measure-Object).Count
 
-            if ($Force -or $PsCmdlet.ShouldContinue($shouldContinueMessage, $shouldContinueCaption)) {
+                $shouldContinueCaption = "If you continue, $($int_ShouldContinueCountValue) credential(s) will be deleted. There is no way to recover them."
+                $shouldContinueMessage = "Please make sure you have taken the necessary precautions. Continue?"
 
-                $PasswordVault.Remove($windowsSecurityCredential)
+                if ($Force -or $PsCmdlet.ShouldContinue($shouldContinueMessage, $shouldContinueCaption)) {
+
+                    $PasswordVault.Remove($windowsSecurityCredential)
+
+                }
+
+            }
+
+            catch {
+
+                Write-Error -ErrorAction Stop -Exception $_.Exception
 
             }
 
         }
-
-        catch {
-
-            Write-Error -ErrorAction Stop -Exception $_.Exception
-
-        }
-
     }
 
     end {

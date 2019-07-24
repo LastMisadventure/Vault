@@ -19,13 +19,3 @@ foreach ($file in @($class + $public + $private)) {
     }
 
 }
-
-try {
-
-    $script:Scoped_ModuleConfig = Import-PowerShellDataFile -Path (Join-Path -Path $PSScriptRoot -ChildPath 'Config.psd1')
-
-} catch {
-
-    Write-Error -Exception $_.Exception
-
-}

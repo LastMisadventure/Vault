@@ -66,15 +66,24 @@ function Get-VaultEntry {
         [switch]
         $All,
 
-        [Parameter(ValueFromPipelineByPropertyName)]
+        [Parameter(ValueFromPipelineByPropertyName, ParameterSetName = 'IncludePassword')]
+        [Parameter(ValueFromPipelineByPropertyName, ParameterSetName = 'FindAllByResource')]
+        [Parameter(ValueFromPipelineByPropertyName, ParameterSetName = 'FindAllByUserName')]
+        [Parameter(ValueFromPipelineByPropertyName, ParameterSetName = 'RetrieveAll')]
         [switch]
         $IncludePassword,
 
         [Parameter(ValueFromPipelineByPropertyName, ParameterSetName = 'AsPsCredential')]
+        [Parameter(ValueFromPipelineByPropertyName, ParameterSetName = 'FindAllByResource')]
+        [Parameter(ValueFromPipelineByPropertyName, ParameterSetName = 'FindAllByUserName')]
+        [Parameter(ValueFromPipelineByPropertyName, ParameterSetName = 'RetrieveAll')]
         [switch]
         $AsPsCredential,
 
-        [Parameter(ValueFromPipelineByPropertyName)]
+        [Parameter(ValueFromPipelineByPropertyName, ParameterSetName = 'IncludePassword')]
+        [Parameter(ValueFromPipelineByPropertyName, ParameterSetName = 'FindAllByResource')]
+        [Parameter(ValueFromPipelineByPropertyName, ParameterSetName = 'FindAllByUserName')]
+        [Parameter(ValueFromPipelineByPropertyName, ParameterSetName = 'RetrieveAll')]
         [switch]
         $Force
 
@@ -96,38 +105,41 @@ function Get-VaultEntry {
 
             $result = GetPasswordVaultEntry -Mode $PsCmdlet.ParameterSetName -Value $value
 
-            if ($IncludePassword.IsPresent -or $AsPsCredential.IsPresent) {
+            if ($IncludePassword.IsPresent) {
 
-                $str_ShouldContinueMessage = "Please make sure you have taken the necessary precautions."
-                $str_ShouldContinueCaption = "If you continue, credential passwords will be decrypted and may be written to the host in clear-text. Continue?"
+                $shouldContinueMessage = "Please make sure you have taken the necessary precautions."
 
-                if ($Force -or $PsCmdlet.ShouldContinue($str_ShouldContinueMessage, $str_ShouldContinueCaption)) {
+                $shouldContinueCaption = "If you continue, credential passwords will be decrypted and may be written to the host in clear-text. Continue?"
+
+                if ($Force -or $PsCmdlet.ShouldContinue($shouldContinueMessage, $shouldContinueCaption)) {
 
                     $result.RetrievePassword()
 
-                    if ($AsPsCredential.IsPresent) {
-
-                        Write-Verbose "[$($MyInvocation.MyCommand.Name)]: Starting pscredential conversion."
-
-                        $result | ConvertWindowsSecurityCredentialToPSCredential
-
-                        Write-Verbose "[$($MyInvocation.MyCommand.Name)]: Done with pscredential conversion."
-
-                    } else {
-
-                        Write-Output $result
-
-                    }
+                    Write-Output $result
 
                 }
 
             }
 
-            else { Write-Output $result }
+            if ($AsPsCredential.IsPresent) {
 
-        }
+                Write-Verbose "[$($MyInvocation.MyCommand.Name)]: Starting pscredential conversion."
 
-        catch {
+                $result.RetrievePassword()
+
+                Write-Output ($result | ConvertWindowsSecurityCredentialToPSCredential)
+
+                Write-Verbose "[$($MyInvocation.MyCommand.Name)]: Done with pscredential conversion."
+
+            }
+
+            if ($AsPsCredential.IsPresent -eq $false -and $IncludePassword.IsPresent -eq $false) {
+
+                Write-Output $result
+
+            }
+
+        } catch {
 
             Write-Error -ErrorAction Stop -Exception $_.Exception
 
