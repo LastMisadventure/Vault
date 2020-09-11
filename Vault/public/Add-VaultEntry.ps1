@@ -37,14 +37,6 @@ function Add-VaultEntry {
 
     )
 
-    begin {
-
-        $ErrorActionPreference = 'Stop'
-
-        $PasswordVault = InitializePasswordVault
-
-    }
-
     process {
 
         Write-Verbose "[$($MyInvocation.MyCommand.Name)]: $($Resource): Adding credential for user '$($PsCredential.UserName)'..."
@@ -57,25 +49,23 @@ function Add-VaultEntry {
 
                 ArgumentList = $Resource, $PsCredential.UserName, (ConvertSecureStringToString -SecureString $PsCredential.Password)
 
+                ErrorAction  = 'Stop'
+
             }
 
             $vaultEntry = New-Object @splat
 
             $PasswordVault.Add($vaultEntry)
 
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)]: $($Resource): Added credential for user '$($PsCredential.UserName)'."
+
         }
 
         catch {
 
-            Write-Error -ErrorAction Stop -Exception $_.Exception
+            $PsCmdlet.ThrowTerminatingError($PSItem)
 
         }
-
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)]: $($Resource): Added credential for user '$($PsCredential.UserName)'."
-
-    }
-
-    end {
 
     }
 

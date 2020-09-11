@@ -13,31 +13,19 @@ function ConvertWindowsSecurityCredentialToPSCredential {
 
     )
 
-    begin {
+    try {
 
-    }
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)]: Converting input to pscredential type."
 
-    process {
+        $psCredential = New-Object -TypeName pscredential -ArgumentList $WindowsSecurityCredential.UserName, ($WindowsSecurityCredential.Password | ConvertStringToSecureString)
 
-        try {
+        Add-Member -ErrorAction Stop -MemberType NoteProperty -Value $WindowsSecurityCredential.Resource -Name Resource -InputObject $psCredential
 
-            Write-Verbose "[$($MyInvocation.MyCommand.Name)]: Converting input to pscredential type."
+        Write-Output $psCredential
 
-            $psCredential = New-Object -TypeName pscredential -ArgumentList $WindowsSecurityCredential.UserName, ($WindowsSecurityCredential.Password | ConvertStringToSecureString)
+    } catch {
 
-            Add-Member -ErrorAction Stop -MemberType NoteProperty -Value $WindowsSecurityCredential.Resource -Name Resource -InputObject $psCredential
-
-            Write-Output $psCredential
-
-        } catch {
-
-            Write-Error -ErrorAction Stop -Exception $_.Exception
-
-        }
-
-    }
-
-    end {
+        $PSCmdlet.ThrowTerminatingError($PSItem)
 
     }
 

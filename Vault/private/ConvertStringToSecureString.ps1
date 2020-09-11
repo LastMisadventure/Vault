@@ -18,7 +18,7 @@ function ConvertStringToSecureString {
 
     } catch {
 
-        Write-Error -ErrorAction Stop -Message "Error converting string value to secure string."
+        $PsCmdlet.ThrowTerminatingError($PSItem)
 
     }
 

@@ -17,7 +17,7 @@ WARNING: Password will be written in clear-text.
 Includes passwords in returns.
 
 .PARAMETER AsPsCredential
-Returns a [pscredential] for each credential entry. The password is always included when this mode is selected.
+Returns a [pscredential] for each credential entry. The password is always included when this mode is selected (as a [securestring]).
 
 .PARAMETER Force
 Bypasses the confirmation prompt when a credential would include clear-text passwords.
@@ -39,7 +39,7 @@ UserName Resource         Password Properties
 test     http://test.com/          {[hidden, False], [applicationid, 00000000-0000-0000-0000-000000000000], [application, ]}
 
 Gets all credentials with the resource "http://test.com/".
-Note: URIs are case-sensitive--http://test.com/  is not the same as http://tEsT.cOm/.
+Note: Resource values are case-sensitive--http://test.com/  is not the same as http://tEsT.cOm/.
 
 .NOTES
 
@@ -89,12 +89,6 @@ function Get-VaultEntry {
 
     )
 
-    begin {
-
-        $ErrorActionPreference = 'Stop'
-
-    }
-
     process {
 
         Write-Verbose "[$($MyInvocation.MyCommand.Name)]: Password-inclusion Mode is set to $($($IncludePassword, $AsPsCredential) -contains $true)."
@@ -103,7 +97,7 @@ function Get-VaultEntry {
 
             $value = if ($Resource) { Write-Output $Resource } else { Write-Output $UserName }
 
-            $result = GetPasswordVaultEntry -Mode $PsCmdlet.ParameterSetName -Value $value
+            $result = GetPasswordVaultEntry -Mode $PsCmdlet.ParameterSetName -Value $value -ErrorAction Stop
 
             if ($IncludePassword.IsPresent) {
 
@@ -127,7 +121,7 @@ function Get-VaultEntry {
 
                 $result.RetrievePassword()
 
-                Write-Output ($result | ConvertWindowsSecurityCredentialToPSCredential)
+                Write-Output (ConvertWindowsSecurityCredentialToPSCredential -WindowsSecurityCredential $result)
 
                 Write-Verbose "[$($MyInvocation.MyCommand.Name)]: Done with pscredential conversion."
 
@@ -141,13 +135,9 @@ function Get-VaultEntry {
 
         } catch {
 
-            Write-Error -ErrorAction Stop -Exception $_.Exception
+            $PsCmdlet.ThrowTerminatingError($PSItem)
 
         }
-
-    }
-
-    end {
 
     }
 

@@ -35,7 +35,7 @@ Gets all credentials with the resource "http://test.com/". Note that URIs in thi
 
 .NOTES
 
-The underlying class, [Windows.Security.Credentials.PasswordVault], is oddly case-sensitve.
+[Windows.Security.Credentials.PasswordVault] is case-sensitve.
 
 #>
 function Remove-VaultEntry {
@@ -58,18 +58,11 @@ function Remove-VaultEntry {
         [switch]
         $All,
 
+        [Parameter(ValueFromPipelineByPropertyName)]
         [switch]
         $Force
 
     )
-
-    begin {
-
-        $ErrorActionPreference = 'Stop'
-
-        $PasswordVault = InitializePasswordVault
-
-    }
 
     process {
 
@@ -84,6 +77,7 @@ function Remove-VaultEntry {
                 $int_ShouldContinueCountValue = ($windowsSecurityCredential | Measure-Object).Count
 
                 $shouldContinueCaption = "If you continue, $($int_ShouldContinueCountValue) credential(s) will be deleted. There is no way to recover them."
+
                 $shouldContinueMessage = "Please make sure you have taken the necessary precautions. Continue?"
 
                 if ($Force -or $PsCmdlet.ShouldContinue($shouldContinueMessage, $shouldContinueCaption)) {
@@ -92,19 +86,13 @@ function Remove-VaultEntry {
 
                 }
 
-            }
+            } catch {
 
-            catch {
-
-                Write-Error -ErrorAction Stop -Exception $_.Exception
+                $PsCmdlet.ThrowTerminatingError($PSItem)
 
             }
 
         }
-    }
-
-    end {
-
     }
 
 }

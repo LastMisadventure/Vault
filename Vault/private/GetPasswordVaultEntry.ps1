@@ -14,7 +14,7 @@ function GetPasswordVaultEntry {
         $Value
     )
 
-    $PasswordVault = InitializePasswordVault
+    InitializePasswordVault
 
     Write-Verbose "[$($MyInvocation.MyCommand.Name)]: Mode '$($Mode)' selected."
 

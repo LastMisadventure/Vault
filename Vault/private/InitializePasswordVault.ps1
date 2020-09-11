@@ -1,15 +1,21 @@
 function InitializePasswordVault {
 
-    [CmdletBinding(PositionalBinding, ConfirmImpact = 'medium')]
+    [CmdletBinding(PositionalBinding, ConfirmImpact = 'low')]
 
     param (
 
     )
 
-    [void] [Windows.Security.Credentials.PasswordVault, Windows.Security.Credentials, ContentType = WindowsRuntime]
+    try {
 
-    $PasswordVault = New-Object -TypeName Windows.Security.Credentials.PasswordVault
+        [void] [Windows.Security.Credentials.PasswordVault, Windows.Security.Credentials, ContentType = WindowsRuntime]
 
-    Write-Output $PasswordVault
+        $script:PasswordVault = New-Object -TypeName Windows.Security.Credentials.PasswordVault
+
+    } catch {
+
+        $PSCmdlet.ThrowTerminatingError($PSItem)
+
+    }
 
 }
